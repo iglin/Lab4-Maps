@@ -1,5 +1,6 @@
 package com.iglin.lab4_maps;
 
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Color;
 import android.support.v4.app.ActivityCompat;
@@ -14,14 +15,24 @@ import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.maps.model.Tile;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.android.gms.maps.model.TileProvider;
+import com.iglin.lab4_maps.model.Journey;
+import com.iglin.lab4_maps.model.Point;
+
+import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 
 public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
 
     private GoogleMap mMap;
+
+    private List<Journey> mJourneys;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -58,22 +69,43 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
         }
         mMap.setMyLocationEnabled(true);
 
+        mJourneys = new ArrayList<>();
         // Add a marker in Sydney and move the camera
         final LatLng sydney = new LatLng(-34, 151);
 
-        mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
+        Marker syd = mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
         mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
+
+        final Journey journey = new Journey();
+        journey.setId(1);
+        journey.setName("My journey");
+        journey.setColor(Color.RED);
+        mJourneys.add(journey);
+
+
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
+                Marker marker = mMap.addMarker(new MarkerOptions().position(latLng));
+                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.ic_accessibility_black_24dp));
+               // Point point = new Point();
+            //    mMap.addPolyline(journey.toPolyLine(Color.BLUE));
             //    mMap.addMarker( new MarkerOptions().position(latLng).title("my").snippet("description").ic);
               //  mMap.addPolyline(new PolylineOptions().add(sydney, latLng).color(Color.RED));
-                LatLng MELBOURNE = new LatLng(-37.813, 144.962);
+               /* LatLng MELBOURNE = new LatLng(-37.813, 144.962);
                 Marker melbourne = mMap.addMarker(new MarkerOptions()
                         .position(MELBOURNE)
                         .title("Melbourne")
                         .snippet("Population: 4,137,400")
                         .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_accessibility_black_24dp)));
+                */
+            }
+        });
+
+        mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
+            @Override
+            public boolean onMarkerClick(Marker marker) {
+                return false;
             }
         });
     }

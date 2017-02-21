@@ -2,6 +2,7 @@ package com.iglin.lab4_maps.model;
 
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
 import java.util.ArrayList;
@@ -13,13 +14,14 @@ import java.util.List;
 
 public class Point {
     private int id;
-    private String name;
-    private String description;
-    private LatLng latLng;
+    private Marker marker;
     private List<Picture> pics;
-    private BitmapDescriptor icon;
 
     public Point() {
+    }
+
+    public Point(Marker marker) {
+        this.marker = marker;
     }
 
     public int getId() {
@@ -30,40 +32,16 @@ public class Point {
         this.id = id;
     }
 
-    public String getName() {
-        return name;
+    public Marker getMarker() {
+        return marker;
     }
 
-    public void setName(String name) {
-        this.name = name;
-    }
-
-    public String getDescription() {
-        return description;
-    }
-
-    public void setDescription(String description) {
-        this.description = description;
+    public void setMarker(Marker marker) {
+        this.marker = marker;
     }
 
     public List<Picture> getPics() {
         return pics;
-    }
-
-    public LatLng getLatLng() {
-        return latLng;
-    }
-
-    public void setLatLng(LatLng latLng) {
-        this.latLng = latLng;
-    }
-
-    public BitmapDescriptor getIcon() {
-        return icon;
-    }
-
-    public void setIcon(BitmapDescriptor icon) {
-        this.icon = icon;
     }
 
     public void setPics(List<Picture> pics) {
@@ -79,9 +57,11 @@ public class Point {
         if (pics != null) pics.remove(picture);
     }
 
-    public MarkerOptions toMarker() {
-        MarkerOptions marker = new MarkerOptions().position(latLng).title(name).snippet(description);
-        if (icon != null) marker.icon(icon);
-        return marker;
+    public double getLatitude() {
+        return marker.getPosition().latitude;
+    }
+
+    public double getLongitude() {
+        return marker.getPosition().longitude;
     }
 }

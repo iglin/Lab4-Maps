@@ -1,6 +1,8 @@
 package com.iglin.lab4_maps.model;
 
+import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.LatLng;
+import com.google.android.gms.maps.model.Polyline;
 import com.google.android.gms.maps.model.PolylineOptions;
 
 import java.util.ArrayList;
@@ -14,6 +16,9 @@ public class Journey {
     private int id;
     private String name;
     private List<Point> points;
+
+    private Polyline polyline;
+    private int color;
 
     public Journey() {
     }
@@ -46,6 +51,22 @@ public class Journey {
         this.points = points;
     }
 
+    public Polyline getPolyline() {
+        return polyline;
+    }
+
+    public void setPolyline(Polyline polyline) {
+        this.polyline = polyline;
+    }
+
+    public int getColor() {
+        return color;
+    }
+
+    public void setColor(int color) {
+        this.color = color;
+    }
+
     public void addPoint(Point point) {
         if (points == null) points = new ArrayList<>();
         points.add(point);
@@ -56,10 +77,21 @@ public class Journey {
     }
 
     public PolylineOptions toPolyLine(int color) {
+        if (points == null) points = new ArrayList<>();
         LatLng[] array = new LatLng[points.size()];
         for (int i = 0; i < array.length; i++) {
-            array[i] = points.get(i).getLatLng();
+            array[i] = points.get(i).getMarker().getPosition();
         }
         return new PolylineOptions().add(array).color(color);
+    }
+
+    public Polyline updatePolyline(GoogleMap map) {
+        if (polyline != null) polyline.remove();
+        polyline = map.addPolyline(toPolyLine(color));
+        return polyline;
+    }
+
+    public void removePolyline() {
+        if (polyline != null) polyline.remove();
     }
 }
