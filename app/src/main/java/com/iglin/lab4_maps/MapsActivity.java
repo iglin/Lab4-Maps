@@ -2,6 +2,7 @@ package com.iglin.lab4_maps;
 
 import android.content.Intent;
 import android.content.pm.PackageManager;
+import android.graphics.Bitmap;
 import android.graphics.Color;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
@@ -9,6 +10,8 @@ import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.widget.ImageView;
+import android.widget.LinearLayout;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -23,6 +26,7 @@ import com.google.android.gms.maps.model.PolylineOptions;
 import com.google.android.gms.maps.model.Tile;
 import com.google.android.gms.maps.model.TileOverlayOptions;
 import com.google.android.gms.maps.model.TileProvider;
+import com.iglin.lab4_maps.db.JourneyContentProvider;
 import com.iglin.lab4_maps.model.Journey;
 import com.iglin.lab4_maps.model.Point;
 
@@ -37,12 +41,16 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private GoogleMap mMap;
 
+    private JourneyContentProvider contentProvider;
+
     private List<Journey> mJourneys;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_maps);
+
+        contentProvider = new JourneyContentProvider(this);
         // Obtain the SupportMapFragment and get notified when the map is ready to be used.
         SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager()
                 .findFragmentById(R.id.map);
@@ -90,14 +98,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
             public void onMapClick(LatLng latLng) {
-                Marker marker = mMap.addMarker(new MarkerOptions().position(latLng));
 
                 Intent intent = new Intent(getApplicationContext(), NewPointActivity.class);
                 intent.putExtra("lat", latLng.latitude);
                 intent.putExtra("lng", latLng.longitude);
                 startActivityForResult(intent, REQUEST_POINT_CREATION);
 
-                marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.ic_accessibility_black_24dp));
                // Point point = new Point();
             //    mMap.addPolyline(journey.toPolyLine(Color.BLUE));
             //    mMap.addMarker( new MarkerOptions().position(latLng).title("my").snippet("description").ic);
@@ -118,6 +124,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 return false;
             }
         });
+
+        loadPoints();
     }
 
     @Override
@@ -138,9 +146,34 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             case R.id.refresh:
                // intent = new Intent(this, NewRecordActivity.class);
               //  startActivity(intent);
+                loadPoints();
                 return true;
         }
 
         return super.onOptionsItemSelected(item);
+    }
+
+    @Override
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+        if (requestCode == REQUEST_POINT_CREATION && resultCode == RESULT_OK) {
+          //  Intent id = data.getIntExtra()
+       //     Bundle extras = data.getExtras();
+         //   Bitmap imageBitmap = (Bitmap) extras.get("data");
+            loadPoints();
+        }
+    }
+
+    private void loadPoints() {
+        List<Point> points = contentProvider.readPointsForMap();
+        mMap.clear();
+        for (Point point : points) {
+            MarkerOptions markerOptions = new MarkerOptions().title(point.getTitle())
+                    .snippet(point.getDescription())
+                    .position(new LatLng(point.getLat(), point.getLng()));
+            if (point.getIconId() != null) {
+                markerOptions.icon(BitmapDescriptorFactory.fromResource(point.getIconId()));
+            }
+            mMap.addMarker(markerOptions);
+        }
     }
 }

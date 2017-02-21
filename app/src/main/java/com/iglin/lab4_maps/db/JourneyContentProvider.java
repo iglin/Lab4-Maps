@@ -2,6 +2,8 @@ package com.iglin.lab4_maps.db;
 
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
+import android.content.IntentSender;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
@@ -12,6 +14,8 @@ import com.iglin.lab4_maps.model.Point;
 import com.iglin.lab4_maps.db.JourneyDbContract.*;
 
 import java.io.ByteArrayOutputStream;
+import java.util.ArrayList;
+import java.util.List;
 
 /**
  * Created by user on 21.02.2017.
@@ -115,6 +119,50 @@ public class JourneyContentProvider {
 
         db.close();
         return point;
+    }
+
+    public List<Point> readPointsForMap() {
+        String[] projection = {
+                PointTable._ID,
+                PointTable.COLUMN_NAME_TITLE,
+                PointTable.COLUMN_NAME_DESCRIPTION,
+                PointTable.COLUMN_NAME_LAT,
+                PointTable.COLUMN_NAME_LNG,
+                PointTable.COLUMN_NAME_ICON
+        };
+
+        SQLiteDatabase db = mDbHelper.getReadableDatabase();
+
+        Cursor cursor = db.query(
+                PointTable.TABLE_NAME,  // The table to query
+                projection,                               // The columns to return
+                null,                                // The columns for the WHERE clause
+                null,                            // The values for the WHERE clause
+                null,                                     // don't group the rows
+                null,                                     // don't filter by row groups
+                null                                 // The sort order
+        );
+
+        List<Point> result = new ArrayList<>();
+        while (cursor.moveToNext()) {
+            Point point = new Point();
+            int index = cursor.getColumnIndex(PointTable._ID);
+            point.setId(cursor.getInt(index));
+            index = cursor.getColumnIndex(PointTable.COLUMN_NAME_TITLE);
+            point.setTitle(cursor.getString(index));
+            index = cursor.getColumnIndex(PointTable.COLUMN_NAME_DESCRIPTION);
+            point.setDescription(cursor.getString(index));
+            index = cursor.getColumnIndex(PointTable.COLUMN_NAME_LAT);
+            point.setLat(cursor.getDouble(index));
+            index = cursor.getColumnIndex(PointTable.COLUMN_NAME_LNG);
+            point.setLng(cursor.getDouble(index));
+            index = cursor.getColumnIndex(PointTable.COLUMN_NAME_ICON);
+            //Integer icon = cursor.getInt(index);
+            point.setId(cursor.getInt(index));
+            result.add(point);
+        }
+        cursor.close();
+        return result;
     }
 
     public Point readPoint(int id) {

@@ -117,9 +117,14 @@ public class NewPointActivity extends AppCompatActivity {
             point.setPics(list);
         }
 
-        contentProvider.insertPoint(point);
+        point.setLng(lng);
+        point.setLat(lat);
 
-        setResult(RESULT_OK);
+        point = contentProvider.insertPoint(point);
+
+        Intent intent = new Intent();
+        intent.putExtra("id", point.getId());
+        setResult(RESULT_OK, intent);
         onBackPressed();
     }
 }
