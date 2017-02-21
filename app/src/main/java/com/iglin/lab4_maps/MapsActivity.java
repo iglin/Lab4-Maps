@@ -6,6 +6,9 @@ import android.graphics.Color;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
+import android.view.MenuItem;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -28,7 +31,9 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-public class MapsActivity extends FragmentActivity implements OnMapReadyCallback {
+public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
+
+    private static final int REQUEST_POINT_CREATION = 1;
 
     private GoogleMap mMap;
 
@@ -86,6 +91,12 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
             @Override
             public void onMapClick(LatLng latLng) {
                 Marker marker = mMap.addMarker(new MarkerOptions().position(latLng));
+
+                Intent intent = new Intent(getApplicationContext(), NewPointActivity.class);
+                intent.putExtra("lat", latLng.latitude);
+                intent.putExtra("lng", latLng.longitude);
+                startActivityForResult(intent, REQUEST_POINT_CREATION);
+
                 marker.setIcon(BitmapDescriptorFactory.fromResource(R.drawable.ic_accessibility_black_24dp));
                // Point point = new Point();
             //    mMap.addPolyline(journey.toPolyLine(Color.BLUE));
@@ -107,5 +118,29 @@ public class MapsActivity extends FragmentActivity implements OnMapReadyCallback
                 return false;
             }
         });
+    }
+
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        // Inflate the menu; this adds items to the action bar if it is present.
+        getMenuInflater().inflate(R.menu.main, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        // Handle action bar item clicks here. The action bar will
+        // automatically handle clicks on the Home/Up button, so long
+        // as you specify a parent activity in AndroidManifest.xml.
+        int id = item.getItemId();
+        Intent intent;
+        switch (id) {
+            case R.id.refresh:
+               // intent = new Intent(this, NewRecordActivity.class);
+              //  startActivity(intent);
+                return true;
+        }
+
+        return super.onOptionsItemSelected(item);
     }
 }
