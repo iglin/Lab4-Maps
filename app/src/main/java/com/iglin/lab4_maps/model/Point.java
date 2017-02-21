@@ -1,10 +1,13 @@
 package com.iglin.lab4_maps.model;
 
+import android.graphics.Bitmap;
+
 import com.google.android.gms.maps.model.BitmapDescriptor;
 import com.google.android.gms.maps.model.LatLng;
 import com.google.android.gms.maps.model.Marker;
 import com.google.android.gms.maps.model.MarkerOptions;
 
+import java.io.Serializable;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -16,6 +19,11 @@ public class Point {
     private int id;
     private Marker marker;
     private List<Picture> pics;
+    private Integer iconId;
+    private String title;
+    private String description;
+    private double lng;
+    private double lat;
 
     public Point() {
     }
@@ -30,6 +38,46 @@ public class Point {
 
     public void setId(int id) {
         this.id = id;
+    }
+
+    public Integer getIconId() {
+        return iconId;
+    }
+
+    public void setIconId(Integer iconId) {
+        this.iconId = iconId;
+    }
+
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
+    }
+
+    public double getLng() {
+        return lng;
+    }
+
+    public void setLng(double lng) {
+        this.lng = lng;
+    }
+
+    public double getLat() {
+        return lat;
+    }
+
+    public void setLat(double lat) {
+        this.lat = lat;
+    }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
     }
 
     public Marker getMarker() {

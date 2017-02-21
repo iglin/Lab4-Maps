@@ -15,7 +15,8 @@ import java.util.List;
 public class Journey {
     private int id;
     private String name;
-    private List<Point> points;
+    private Point startPoint;;
+    private Point endPoint;
 
     private Polyline polyline;
     private int color;
@@ -43,14 +44,6 @@ public class Journey {
         this.name = name;
     }
 
-    public List<Point> getPoints() {
-        return points;
-    }
-
-    public void setPoints(List<Point> points) {
-        this.points = points;
-    }
-
     public Polyline getPolyline() {
         return polyline;
     }
@@ -67,22 +60,28 @@ public class Journey {
         this.color = color;
     }
 
-    public void addPoint(Point point) {
-        if (points == null) points = new ArrayList<>();
-        points.add(point);
+    public Point getStartPoint() {
+        return startPoint;
     }
 
-    public void removePoint(Point point) {
-        if (points != null) points.remove(point);
+    public void setStartPoint(Point startPoint) {
+        this.startPoint = startPoint;
+    }
+
+    public Point getEndPoint() {
+        return endPoint;
+    }
+
+    public void setEndPoint(Point endPoint) {
+        this.endPoint = endPoint;
     }
 
     public PolylineOptions toPolyLine(int color) {
-        if (points == null) points = new ArrayList<>();
-        LatLng[] array = new LatLng[points.size()];
-        for (int i = 0; i < array.length; i++) {
-            array[i] = points.get(i).getMarker().getPosition();
-        }
-        return new PolylineOptions().add(array).color(color);
+        if (startPoint == null || endPoint == null) return null;
+        return new PolylineOptions()
+                .add(startPoint.getMarker().getPosition(),
+                        endPoint.getMarker().getPosition())
+                .color(color);
     }
 
     public Polyline updatePolyline(GoogleMap map) {
