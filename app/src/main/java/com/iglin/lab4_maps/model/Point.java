@@ -17,7 +17,6 @@ import java.util.List;
 
 public class Point {
     private int id;
-    private Marker marker;
     private List<Picture> pics;
     private Bitmap icon;
     private String title;
@@ -26,10 +25,6 @@ public class Point {
     private double lat;
 
     public Point() {
-    }
-
-    public Point(Marker marker) {
-        this.marker = marker;
     }
 
     public int getId() {
@@ -80,14 +75,6 @@ public class Point {
         this.description = description;
     }
 
-    public Marker getMarker() {
-        return marker;
-    }
-
-    public void setMarker(Marker marker) {
-        this.marker = marker;
-    }
-
     public List<Picture> getPics() {
         return pics;
     }
@@ -105,11 +92,4 @@ public class Point {
         if (pics != null) pics.remove(picture);
     }
 
-    public double getLatitude() {
-        return marker.getPosition().latitude;
-    }
-
-    public double getLongitude() {
-        return marker.getPosition().longitude;
-    }
 }

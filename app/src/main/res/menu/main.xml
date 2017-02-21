@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
+    <item android:title="Start Journey"
+        android:id="@+id/start_journey"
+        android:visible="true" />
+    <item android:title="Cancel Journey"
+        android:id="@+id/cancel_journey"
+        android:visible="true" />
     <item android:title="Delete"
         android:id="@+id/delete" />
     <item android:title="Refresh"

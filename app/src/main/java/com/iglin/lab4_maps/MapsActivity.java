@@ -2,6 +2,7 @@ package com.iglin.lab4_maps;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
@@ -10,12 +11,17 @@ import android.location.LocationManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.text.InputType;
 import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
+import android.view.View;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.Toast;
 
 import com.google.android.gms.maps.CameraUpdateFactory;
 import com.google.android.gms.maps.GoogleMap;
@@ -35,9 +41,11 @@ import com.iglin.lab4_maps.model.Journey;
 import com.iglin.lab4_maps.model.Point;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Random;
 
 public class MapsActivity extends AppCompatActivity implements OnMapReadyCallback {
 
@@ -47,9 +55,11 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private JourneyContentProvider contentProvider;
 
-    private List<Journey> mJourneys;
+    private Random random = new Random(System.currentTimeMillis());
 
     private Marker selectedMarker;
+    private boolean makingJourney = false;
+    private Journey currentJourney;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -87,21 +97,7 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             return;
         }
 
-
         mMap.setMyLocationEnabled(true);
-
-        mJourneys = new ArrayList<>();
-        // Add a marker in Sydney and move the camera
-        final LatLng sydney = new LatLng(-34, 151);
-
-        Marker syd = mMap.addMarker(new MarkerOptions().position(sydney).title("Marker in Sydney"));
-        mMap.moveCamera(CameraUpdateFactory.newLatLng(sydney));
-
-        final Journey journey = new Journey();
-        journey.setId(1);
-        journey.setName("My journey");
-        journey.setColor(Color.RED);
-        mJourneys.add(journey);
 
         mMap.setOnMapClickListener(new GoogleMap.OnMapClickListener() {
             @Override
@@ -112,17 +108,10 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 intent.putExtra("lng", latLng.longitude);
                 startActivityForResult(intent, REQUEST_POINT_CREATION);
 
-               // Point point = new Point();
-            //    mMap.addPolyline(journey.toPolyLine(Color.BLUE));
-            //    mMap.addMarker( new MarkerOptions().position(latLng).title("my").snippet("description").ic);
-              //  mMap.addPolyline(new PolylineOptions().add(sydney, latLng).color(Color.RED));
-               /* LatLng MELBOURNE = new LatLng(-37.813, 144.962);
-                Marker melbourne = mMap.addMarker(new MarkerOptions()
-                        .position(MELBOURNE)
-                        .title("Melbourne")
-                        .snippet("Population: 4,137,400")
-                        .icon(BitmapDescriptorFactory.fromResource(R.drawable.ic_accessibility_black_24dp)));
-                */
+                currentJourney = null;
+                selectedMarker = null;
+                makingJourney = false;
+             //   findViewById(R.id.start_journey).setVisibility(View.INVISIBLE);
             }
         });
 
@@ -131,6 +120,46 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             @Override
             public boolean onMarkerClick(Marker marker) {
                 selectedMarker = marker;
+             //   findViewById(R.id.start_journey).setVisibility(View.VISIBLE);
+
+                if (makingJourney) {
+                    if (marker.getPosition().latitude == currentJourney.getStartPoint().getLat() &&
+                            marker.getPosition().longitude == currentJourney.getStartPoint().getLng()) {
+                        Toast.makeText(getApplicationContext(), "You must choose different ending point!", Toast.LENGTH_LONG).show();
+                        return false;
+                    }
+                    AlertDialog.Builder builder = new AlertDialog.Builder(getApplicationContext());
+                    builder.setTitle("Title");
+
+                    final EditText input = new EditText(getApplicationContext());
+                    input.setInputType(InputType.TYPE_CLASS_TEXT);
+                    builder.setView(input);
+
+                    builder.setPositiveButton("OK", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            currentJourney.setName(input.getText().toString());
+                        }
+                    });
+                    builder.setNegativeButton("Cancel", new DialogInterface.OnClickListener() {
+                        @Override
+                        public void onClick(DialogInterface dialog, int which) {
+                            dialog.cancel();
+                        }
+                    });
+                    builder.show();
+
+                    Point point = contentProvider.readPoint(marker.getPosition().latitude, marker.getPosition().longitude);
+                    currentJourney.setEndPoint(point);
+                    Journey result = contentProvider.insertJourney(currentJourney);
+                    if (result == null) {
+                        Toast.makeText(getApplicationContext(), "These points are alrready connected!", Toast.LENGTH_LONG).show();
+                        return false;
+                    }
+
+                    makingJourney = false;
+                    loadPoints();
+                }
                 openOptionsMenu();
                 return false;
             }
@@ -174,6 +203,23 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 contentProvider.deletePoint(selectedMarker.getPosition().latitude, selectedMarker.getPosition().longitude);
                 loadPoints();
                 return true;
+            case R.id.start_journey:
+                // intent = new Intent(this, NewRecordActivity.class);
+                //  startActivity(intent);
+                currentJourney = new Journey();
+                Point point = contentProvider.readPoint(selectedMarker.getPosition().latitude, selectedMarker.getPosition().longitude);
+                currentJourney.setStartPoint(point);
+                makingJourney = true;
+            //    findViewById(R.id.start_journey).setVisibility(View.INVISIBLE);
+            //    findViewById(R.id.cancel_journey).setVisibility(View.VISIBLE);
+                return true;
+            case R.id.cancel_journey:
+                // intent = new Intent(this, NewRecordActivity.class);
+                //  startActivity(intent);
+                makingJourney = false;
+              //  findViewById(R.id.cancel_journey).setVisibility(View.INVISIBLE);
+             //   findViewById(R.id.start_journey).setVisibility(View.VISIBLE);
+                return true;
         }
 
         return super.onOptionsItemSelected(item);
@@ -200,6 +246,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
                 markerOptions.icon(BitmapDescriptorFactory.fromBitmap(point.getIcon()));
             }
             mMap.addMarker(markerOptions);
+        }
+
+        List<Journey> journeys = contentProvider.readJourneys();
+        for (Journey journey : journeys) {
+            int color = - Color.BLACK + random.nextInt(Color.BLACK);
+            mMap.addPolyline(journey.toPolyLine(color));
         }
     }
 }

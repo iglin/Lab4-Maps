@@ -11,6 +11,7 @@ import android.graphics.BitmapFactory;
 import android.util.Log;
 
 import com.iglin.lab4_maps.R;
+import com.iglin.lab4_maps.model.Journey;
 import com.iglin.lab4_maps.model.Picture;
 import com.iglin.lab4_maps.model.Point;
 import com.iglin.lab4_maps.db.JourneyDbContract.*;
@@ -68,6 +69,104 @@ public class JourneyContentProvider {
 
         db.close();
         return point;
+    }
+
+    public Journey insertJourney(Journey journey) {
+        if (readJourney(journey.getStartPoint(), journey.getEndPoint()) != null ||
+                readJourney(journey.getEndPoint(), journey.getStartPoint()) != null) {
+            return null;
+        }
+        SQLiteDatabase db = mDbHelper.getWritableDatabase();
+
+        ContentValues values = new ContentValues();
+        values.put(JourneyTable.COLUMN_NAME_TITLE, journey.getName());
+        values.put(JourneyTable.COLUMN_NAME_START, journey.getStartPoint().getId());
+        values.put(JourneyTable.COLUMN_NAME_END, journey.getEndPoint().getId());
+
+        int id = (int) db.insert(
+                JourneyTable.TABLE_NAME,
+                null,
+                values);
+        journey.setId(id);
+        db.close();
+        return journey;
+    }
+
+    public List<Journey> readJourneys() {
+        String[] projection = {
+                JourneyTable._ID,
+                JourneyTable.COLUMN_NAME_TITLE,
+                JourneyTable.COLUMN_NAME_START,
+                JourneyTable.COLUMN_NAME_END
+        };
+
+        SQLiteDatabase db = mDbHelper.getReadableDatabase();
+
+        Cursor cursor = db.query(
+                JourneyTable.TABLE_NAME,  // The table to query
+                projection,                               // The columns to return
+                null,                                // The columns for the WHERE clause
+                null,                            // The values for the WHERE clause
+                null,                                     // don't group the rows
+                null,                                     // don't filter by row groups
+                null                                 // The sort order
+        );
+
+        List<Journey> result = new ArrayList<>();
+        while (cursor.moveToNext()) {
+            Journey journey = new Journey();
+            int index = cursor.getColumnIndex(JourneyTable._ID);
+            journey.setId(cursor.getInt(index));
+            index = cursor.getColumnIndex(JourneyTable.COLUMN_NAME_TITLE);
+            journey.setName(cursor.getString(index));
+            index = cursor.getColumnIndex(JourneyTable.COLUMN_NAME_START);
+            journey.setStartPoint(readPoint(cursor.getInt(index)));
+            index = cursor.getColumnIndex(JourneyTable.COLUMN_NAME_END);
+            journey.setEndPoint(readPoint(cursor.getInt(index)));
+
+            result.add(journey);
+        }
+        cursor.close();
+        db.close();
+        return result;
+    }
+
+    public Journey readJourney(Point startPoint, Point endPoint) {
+        String selection = JourneyTable.COLUMN_NAME_START + " = ? AND " + JourneyTable.COLUMN_NAME_END + " = ? ";
+        String[] selectionArgs = { String.valueOf(startPoint.getId()), String.valueOf(endPoint.getId()) };
+
+        String[] projection = {
+                JourneyTable._ID,
+                JourneyTable.COLUMN_NAME_TITLE,
+                JourneyTable.COLUMN_NAME_START,
+                JourneyTable.COLUMN_NAME_END
+        };
+
+        SQLiteDatabase db = mDbHelper.getReadableDatabase();
+
+        Cursor cursor = db.query(
+                PointTable.TABLE_NAME,  // The table to query
+                projection,                               // The columns to return
+                selection,                                // The columns for the WHERE clause
+                selectionArgs,                            // The values for the WHERE clause
+                null,                                     // don't group the rows
+                null,                                     // don't filter by row groups
+                null                                 // The sort order
+        );
+        if (cursor.moveToNext()) {
+            Journey journey = new Journey(startPoint, endPoint);
+            int index = cursor.getColumnIndex(JourneyTable._ID);
+            journey.setId(cursor.getInt(index));
+            index = cursor.getColumnIndex(JourneyTable.COLUMN_NAME_TITLE);
+            journey.setName(cursor.getString(index));
+            cursor.close();
+            db.close();
+            return journey;
+        } else {
+            cursor.close();
+            db.close();
+            return null;
+        }
     }
 
     public Point readPoint(double lat, double lng) {
@@ -254,16 +353,18 @@ public class JourneyContentProvider {
     }
 
     public void deletePoint(double lat, double lng) {
-        // TODO check if point used in journeys
-
         Point point = readPoint(lat, lng);
 
         if (point == null) return;
 
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
 
-        String selection = PictureTable.COLUMN_NAME_POINT + " = ? ";
-        String[] selectionArgs = new String[] { String.valueOf(point.getId()) };
+        String selection = JourneyTable.COLUMN_NAME_START + " = ? OR " + JourneyTable.COLUMN_NAME_END + " = ? ";
+        String[] selectionArgs = new String[] { String.valueOf(point.getId()), String.valueOf(point.getId()) };
+        db.delete(JourneyTable.TABLE_NAME, selection, selectionArgs);
+
+        selection = PictureTable.COLUMN_NAME_POINT + " = ? ";
+        selectionArgs = new String[] { String.valueOf(point.getId()) };
         db.delete(PictureTable.TABLE_NAME, selection, selectionArgs);
 
         selection = PointTable.COLUMN_NAME_LAT + " = ? AND " + PointTable.COLUMN_NAME_LNG + " = ? ";

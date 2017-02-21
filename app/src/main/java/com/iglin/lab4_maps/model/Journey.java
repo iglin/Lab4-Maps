@@ -18,14 +18,16 @@ public class Journey {
     private Point startPoint;;
     private Point endPoint;
 
-    private Polyline polyline;
-    private int color;
-
     public Journey() {
     }
 
     public Journey(String name) {
         this.name = name;
+    }
+
+    public Journey(Point startPoint, Point endPoint) {
+        this.startPoint = startPoint;
+        this.endPoint = endPoint;
     }
 
     public int getId() {
@@ -42,22 +44,6 @@ public class Journey {
 
     public void setName(String name) {
         this.name = name;
-    }
-
-    public Polyline getPolyline() {
-        return polyline;
-    }
-
-    public void setPolyline(Polyline polyline) {
-        this.polyline = polyline;
-    }
-
-    public int getColor() {
-        return color;
-    }
-
-    public void setColor(int color) {
-        this.color = color;
     }
 
     public Point getStartPoint() {
@@ -79,12 +65,12 @@ public class Journey {
     public PolylineOptions toPolyLine(int color) {
         if (startPoint == null || endPoint == null) return null;
         return new PolylineOptions()
-                .add(startPoint.getMarker().getPosition(),
-                        endPoint.getMarker().getPosition())
+                .add(new LatLng(startPoint.getLat(), startPoint.getLng()),
+                        new LatLng(endPoint.getLat(), endPoint.getLng()))
                 .color(color);
     }
 
-    public Polyline updatePolyline(GoogleMap map) {
+  /*  public Polyline updatePolyline(GoogleMap map) {
         if (polyline != null) polyline.remove();
         polyline = map.addPolyline(toPolyLine(color));
         return polyline;
@@ -92,5 +78,5 @@ public class Journey {
 
     public void removePolyline() {
         if (polyline != null) polyline.remove();
-    }
+    }*/
 }
