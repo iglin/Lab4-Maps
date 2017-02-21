@@ -1,9 +1,12 @@
 package com.iglin.lab4_maps;
 
+import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.Color;
+import android.location.LocationManager;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
@@ -46,6 +49,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
 
     private List<Journey> mJourneys;
 
+    private Marker selectedMarker;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -81,6 +86,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             // for ActivityCompat#requestPermissions for more details.
             return;
         }
+
+
         mMap.setMyLocationEnabled(true);
 
         mJourneys = new ArrayList<>();
@@ -119,14 +126,26 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
 
+
         mMap.setOnMarkerClickListener(new GoogleMap.OnMarkerClickListener() {
             @Override
             public boolean onMarkerClick(Marker marker) {
+                selectedMarker = marker;
+                openOptionsMenu();
                 return false;
             }
         });
 
         loadPoints();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        if (!((LocationManager)getApplicationContext().getSystemService(Context.LOCATION_SERVICE))
+                .isProviderEnabled(LocationManager.GPS_PROVIDER)){
+            startActivity(new Intent(android.provider.Settings.ACTION_LOCATION_SOURCE_SETTINGS));
+        }
     }
 
     @Override
@@ -147,6 +166,12 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             case R.id.refresh:
                // intent = new Intent(this, NewRecordActivity.class);
               //  startActivity(intent);
+                loadPoints();
+                return true;
+            case R.id.delete:
+                // intent = new Intent(this, NewRecordActivity.class);
+                //  startActivity(intent);
+                contentProvider.deletePoint(selectedMarker.getPosition().latitude, selectedMarker.getPosition().longitude);
                 loadPoints();
                 return true;
         }
