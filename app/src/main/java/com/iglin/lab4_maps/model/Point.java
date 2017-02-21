@@ -19,7 +19,7 @@ public class Point {
     private int id;
     private Marker marker;
     private List<Picture> pics;
-    private Integer iconId;
+    private Bitmap icon;
     private String title;
     private String description;
     private double lng;
@@ -40,12 +40,12 @@ public class Point {
         this.id = id;
     }
 
-    public Integer getIconId() {
-        return iconId;
+    public Bitmap getIcon() {
+        return icon;
     }
 
-    public void setIconId(Integer iconId) {
-        this.iconId = iconId;
+    public void setIcon(Bitmap iconId) {
+        this.icon = iconId;
     }
 
     public String getTitle() {

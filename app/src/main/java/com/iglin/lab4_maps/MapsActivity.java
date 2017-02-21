@@ -8,6 +8,7 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.app.FragmentActivity;
 import android.os.Bundle;
 import android.support.v7.app.AppCompatActivity;
+import android.util.Log;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.widget.ImageView;
@@ -170,8 +171,8 @@ public class MapsActivity extends AppCompatActivity implements OnMapReadyCallbac
             MarkerOptions markerOptions = new MarkerOptions().title(point.getTitle())
                     .snippet(point.getDescription())
                     .position(new LatLng(point.getLat(), point.getLng()));
-            if (point.getIconId() != null) {
-                markerOptions.icon(BitmapDescriptorFactory.fromResource(point.getIconId()));
+            if (point.getIcon() != null) {
+                markerOptions.icon(BitmapDescriptorFactory.fromBitmap(point.getIcon()));
             }
             mMap.addMarker(markerOptions);
         }

@@ -2,6 +2,7 @@ package com.iglin.lab4_maps;
 
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.graphics.drawable.BitmapDrawable;
 import android.provider.MediaStore;
 import android.support.v7.app.AppCompatActivity;
@@ -101,8 +102,13 @@ public class NewPointActivity extends AppCompatActivity {
         point.setTitle(textEdit.getText().toString());
         textEdit = (EditText) findViewById(R.id.editTextDescr);
         point.setDescription(textEdit.getText().toString());
+
         Spinner spinner = (Spinner) findViewById(R.id.spinner);
-        point.setIconId(resolveIconId(String.valueOf(spinner.getSelectedItem())));
+        Integer iconId = resolveIconId(String.valueOf(spinner.getSelectedItem()));
+        if (iconId != null) {
+            Bitmap bm = BitmapFactory.decodeResource(getResources(), iconId);
+            point.setIcon(bm);
+        }
 
         LinearLayout layout = (LinearLayout)findViewById(R.id.listPics);
         List<Picture> list = new ArrayList<>(layout.getChildCount());

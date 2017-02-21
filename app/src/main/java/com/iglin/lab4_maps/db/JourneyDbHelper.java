@@ -11,7 +11,7 @@ import com.iglin.lab4_maps.db.JourneyDbContract.*;
  */
 
 public class JourneyDbHelper extends SQLiteOpenHelper {
-    public static final int DATABASE_VERSION = 1;
+    public static final int DATABASE_VERSION = 2;
     public static final String DATABASE_NAME = "Journey.db";
 
     private static final String TEXT_TYPE = "TEXT";
@@ -27,7 +27,7 @@ public class JourneyDbHelper extends SQLiteOpenHelper {
                     PointTable.COLUMN_NAME_DESCRIPTION + " " + TEXT_TYPE + ", " +
                     PointTable.COLUMN_NAME_LAT + " " + REAL_TYPE + ", " +
                     PointTable.COLUMN_NAME_LNG + " " + REAL_TYPE + ", " +
-                    PointTable.COLUMN_NAME_ICON + " " + INT_TYPE +
+                    PointTable.COLUMN_NAME_ICON + " " + BLOB_TYPE +
                     " )";
     private static final String SQL_DROP_TABLE_POINT = "DROP TABLE IF EXISTS " + PointTable.TABLE_NAME;
 

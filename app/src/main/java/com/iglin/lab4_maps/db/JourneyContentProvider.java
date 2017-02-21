@@ -8,7 +8,9 @@ import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.util.Log;
 
+import com.iglin.lab4_maps.R;
 import com.iglin.lab4_maps.model.Picture;
 import com.iglin.lab4_maps.model.Point;
 import com.iglin.lab4_maps.db.JourneyDbContract.*;
@@ -33,10 +35,12 @@ public class JourneyContentProvider {
     }
 
     public Point insertPoint(Point point) {
+        deletePoint(point.getLat(), point.getLng());
+
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
 
         ContentValues values = new ContentValues();
-        values.put(PointTable.COLUMN_NAME_ICON, point.getIconId());
+        values.put(PointTable.COLUMN_NAME_ICON, bitmapToBytesArray(point.getIcon()));
         values.put(PointTable.COLUMN_NAME_TITLE, point.getTitle());
         values.put(PointTable.COLUMN_NAME_DESCRIPTION, point.getDescription());
         values.put(PointTable.COLUMN_NAME_LAT, point.getLat());
@@ -90,35 +94,41 @@ public class JourneyContentProvider {
                 null,                                     // don't filter by row groups
                 null                                 // The sort order
         );
-        Point point = new Point();
 
-        int index = cursor.getColumnIndex(PointTable._ID);
-        point.setId(cursor.getInt(index));
-        index = cursor.getColumnIndex(PointTable.COLUMN_NAME_TITLE);
-        point.setTitle(cursor.getString(index));
-        index = cursor.getColumnIndex(PointTable.COLUMN_NAME_DESCRIPTION);
-        point.setDescription(cursor.getString(index));
-        index = cursor.getColumnIndex(PointTable.COLUMN_NAME_LAT);
-        point.setLat(cursor.getDouble(index));
-        index = cursor.getColumnIndex(PointTable.COLUMN_NAME_LNG);
-        point.setLng(cursor.getDouble(index));
-        index = cursor.getColumnIndex(PointTable.COLUMN_NAME_ICON);
-        point.setIconId(cursor.getInt(index));
-        cursor.close();
+        if (cursor.moveToNext()) {
+            Point point = new Point();
 
-        cursor = readPics(point.getId());
-        while (cursor.moveToNext()) {
-            Picture picture = new Picture();
-            index = cursor.getColumnIndex(PictureTable._ID);
-            picture.setId(cursor.getInt(index));
-            index = cursor.getColumnIndex(PictureTable.COLUMN_NAME_PICTURE);
-            picture.setPicture(bytesArrayToBitmap(cursor.getBlob(index)));
+            int index = cursor.getColumnIndex(PointTable._ID);
+            point.setId(cursor.getInt(index));
+            index = cursor.getColumnIndex(PointTable.COLUMN_NAME_TITLE);
+            point.setTitle(cursor.getString(index));
+            index = cursor.getColumnIndex(PointTable.COLUMN_NAME_DESCRIPTION);
+            point.setDescription(cursor.getString(index));
+            index = cursor.getColumnIndex(PointTable.COLUMN_NAME_LAT);
+            point.setLat(cursor.getDouble(index));
+            index = cursor.getColumnIndex(PointTable.COLUMN_NAME_LNG);
+            point.setLng(cursor.getDouble(index));
+            index = cursor.getColumnIndex(PointTable.COLUMN_NAME_ICON);
+            point.setIcon(bytesArrayToBitmap(cursor.getBlob(index)));
+            cursor.close();
 
-            point.addPic(picture);
+            cursor = readPics(point.getId());
+            while (cursor.moveToNext()) {
+                Picture picture = new Picture();
+                index = cursor.getColumnIndex(PictureTable._ID);
+                picture.setId(cursor.getInt(index));
+                index = cursor.getColumnIndex(PictureTable.COLUMN_NAME_PICTURE);
+                picture.setPicture(bytesArrayToBitmap(cursor.getBlob(index)));
+
+                point.addPic(picture);
+            }
+
+            db.close();
+            return point;
+        } else {
+            db.close();
+            return null;
         }
-
-        db.close();
-        return point;
     }
 
     public List<Point> readPointsForMap() {
@@ -158,7 +168,7 @@ public class JourneyContentProvider {
             point.setLng(cursor.getDouble(index));
             index = cursor.getColumnIndex(PointTable.COLUMN_NAME_ICON);
             //Integer icon = cursor.getInt(index);
-            point.setId(cursor.getInt(index));
+            point.setIcon(bytesArrayToBitmap(cursor.getBlob(index)));
             result.add(point);
         }
         cursor.close();
@@ -202,7 +212,7 @@ public class JourneyContentProvider {
         index = cursor.getColumnIndex(PointTable.COLUMN_NAME_LNG);
         point.setLng(cursor.getDouble(index));
         index = cursor.getColumnIndex(PointTable.COLUMN_NAME_ICON);
-        point.setIconId(cursor.getInt(index));
+        point.setIcon(bytesArrayToBitmap(cursor.getBlob(index)));
         cursor.close();
 
         cursor = readPics(id);
@@ -248,6 +258,8 @@ public class JourneyContentProvider {
 
         Point point = readPoint(lat, lng);
 
+        if (point == null) return;
+
         SQLiteDatabase db = mDbHelper.getWritableDatabase();
 
         String selection = PictureTable.COLUMN_NAME_POINT + " = ? ";
@@ -262,12 +274,16 @@ public class JourneyContentProvider {
     }
 
     private byte[] bitmapToBytesArray(Bitmap bitmap) {
+        if (bitmap == null) return null;
         ByteArrayOutputStream stream = new ByteArrayOutputStream();
         bitmap.compress(Bitmap.CompressFormat.PNG, 0, stream);
         return stream.toByteArray();
     }
 
     private Bitmap bytesArrayToBitmap(byte[] image) {
+        if (image == null) return null;
         return BitmapFactory.decodeByteArray(image, 0, image.length);
     }
+
+
 }
